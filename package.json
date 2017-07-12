@@ -1,0 +1,26 @@
+{
+  "name": "fluid",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "dependencies": {
+    "flow-remove-types": "^1.2.1",
+    "flow-bin": "^0.49.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "flow-remove-types src/ -d lib/",
+    "flow": "flow"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nevermakeport/fluid.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nevermakeport/fluid/issues"
+  },
+  "homepage": "https://github.com/nevermakeport/fluid#readme"
+}
