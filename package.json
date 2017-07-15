@@ -8,9 +8,7 @@
     "@types/three": "^0.84.17"
   },
   "scripts": {
-    "dev": "watch \"npm run build\" src",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
     "flow": "flow"
   },
   "repository": {
