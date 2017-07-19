@@ -35,29 +35,38 @@ const surface = new THREE.Mesh(
       varying vec3 surfaceNormal;
       varying vec3 vertPos;
 
-      vec3 wave() {
-        float A = 1.0;            // amplitude
-        float L = 10.0;           // length
-        float w = 2.0 * M_PI / L; // frequency
-        float Q = 0.5;            // steepness
-        vec2 D = vec2(1.0, 1.0);  // direction
+      const float A = 1.0;            // amplitude
+      const float L = 10.0;           // length
+      const float w = 2.0 * M_PI / L; // frequency
+      const float Q = 0.5;            // steepness
+      const vec2 D = vec2(1.0, 1.0);  // direction
+      const float speed = 1.0;        // phase
 
-        float speed = 1.0;
+      struct Wave {
+        vec3 position;
+        vec3 normal;
+      } wave;
 
-        float dotD = dot(position, vec3(D, 1.0));
-        float C = cos(w * dotD + time * speed);
+      void calculateDisplacement() {
+        float dotD = dot(position, vec3(D, 1.0)); 
         float S = sin(w * dotD + time * speed);
+        float C = cos(w * dotD + time * speed);
 
-        return vec3(position.x + Q * A * C * D.x,
-                    A * S,
-                    position.z + Q * A * C * D.y);
+        wave.position = vec3(position.x + Q * A * C * D.x,
+                             A * S,
+                             position.z + Q * A * C * D.y);
+
+        wave.normal = vec3(-D.x * w * A * C,            
+                           1.0 - Q * w * A * S,
+                           -D.y * w * A * C);
       }
 
       void main(){
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(wave(), 1.0);
-          vec4 vertPos4 = modelViewMatrix * vec4(position, 1.0);
+          calculateDisplacement();
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(wave.position, 1.0);
+          vec4 vertPos4 = modelViewMatrix * vec4(wave.position, 1.0);
           vertPos = vec3(vertPos4) / vertPos4.w;
-          surfaceNormal = vec3(normalMatrix * normal);
+          surfaceNormal = vec3(normalMatrix * wave.normal);
       }
     `,
     fragmentShader: `
