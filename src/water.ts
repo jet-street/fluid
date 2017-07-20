@@ -22,7 +22,31 @@ const controls = new THREE.OrbitControls(camera, renderer.domElement)
 
 
 // Surface
-const uniforms = { time: {type: 'f', value: 1.0} }
+const uniforms = {
+  time: {type: 'f', value: 1.0},
+  wavefronts: { 
+    value: [
+      {
+        amplitude: 1,
+        length: 10,
+        steepness: 0.3,
+        direction: new THREE.Vector2(1, 1)
+      },
+      {
+        amplitude: 1,
+        length: 10,
+        steepness: 1,
+        direction: new THREE.Vector2(0.4, 0.8)
+      },
+      {
+        amplitude: 3,
+        length: 30,
+        steepness: 1,
+        direction: new THREE.Vector2(-0.6, 0.3)
+      }
+    ],
+  }
+}
 const size = 32
 const surface = new THREE.Mesh(
   new THREE.PlaneBufferGeometry(30, 30, size, size),
@@ -30,43 +54,66 @@ const surface = new THREE.Mesh(
     uniforms,
     vertexShader: `
       #define M_PI 3.1415926535897932384626433832795
+      #define NUM_WAVEFRONTS 3
 
       uniform float time;
+
       varying vec3 surfaceNormal;
       varying vec3 vertPos;
-
-      const float A = 1.0;            // amplitude
-      const float L = 10.0;           // length
-      const float w = 2.0 * M_PI / L; // frequency
-      const float Q = 0.5;            // steepness
-      const vec2 D = vec2(1.0, 1.0);  // direction
-      const float speed = 1.0;        // phase
 
       struct Wave {
         vec3 position;
         vec3 normal;
-      } wave;
+      };
 
-      void calculateDisplacement() {
+      struct Wavefront {
+        float amplitude;
+        float length;
+        float steepness;
+        vec2 direction;
+      };
+      uniform Wavefront wavefronts[NUM_WAVEFRONTS];
+
+      Wave getWave(Wavefront wf) {
+        float A = wf.amplitude;
+        float L = wf.length;
+        float Q = wf.steepness;
+        vec2 D = wf.direction;
+        float w = 2.0 * M_PI / L; // frequency
+        float speed = 1.0;        // phase
+
         float dotD = dot(position, vec3(D, 1.0)); 
         float S = sin(w * dotD + time * speed);
         float C = cos(w * dotD + time * speed);
 
-        wave.position = vec3(position.x + Q * A * C * D.x,
-                             A * S,
-                             position.z + Q * A * C * D.y);
+        vec3 wavePosition = vec3(position.x + Q * A * C * D.x,
+                                 A * S,
+                                 position.z + Q * A * C * D.y);
 
-        wave.normal = vec3(-D.x * w * A * C,            
-                           1.0 - Q * w * A * S,
-                           -D.y * w * A * C);
+        vec3 waveNormal = vec3(-D.x * w * A * C,            
+                               1.0 - Q * w * A * S,
+                               -D.y * w * A * C);
+
+        return Wave(wavePosition, waveNormal);
+      }
+
+      Wave sumWaves() {
+        Wave sum = Wave(vec3(0.0), vec3(0.0));
+        for (int i = 0; i < NUM_WAVEFRONTS; i++) {
+          Wave wave = getWave(wavefronts[i]);
+          sum.position += wave.position;
+          sum.normal += wave.normal;
+        }
+        return sum;
       }
 
       void main(){
-          calculateDisplacement();
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(wave.position, 1.0);
-          vec4 vertPos4 = modelViewMatrix * vec4(wave.position, 1.0);
-          vertPos = vec3(vertPos4) / vertPos4.w;
-          surfaceNormal = vec3(normalMatrix * wave.normal);
+        Wave combinedWave = sumWaves();
+        gl_Position = projectionMatrix * modelViewMatrix
+                      * vec4(combinedWave.position, 1.0);
+        vec4 vertPos4 = modelViewMatrix * vec4(combinedWave.position, 1.0);
+        vertPos = vec3(vertPos4) / vertPos4.w;
+        surfaceNormal = vec3(normalMatrix * combinedWave.normal);
       }
     `,
     fragmentShader: `
