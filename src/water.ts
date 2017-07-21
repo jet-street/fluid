@@ -1,4 +1,5 @@
 /// <reference path="../node_modules/@types/three/index.d.ts" />
+/// <reference path="../node_modules/@types/dat-gui/index.d.ts" />
 
 
 // Set up
@@ -20,32 +21,63 @@ const clock = new THREE.Clock()
 
 const controls = new THREE.OrbitControls(camera, renderer.domElement)
 
+class Wavefront {
+  constructor(public amplitude: number,
+              public length: number,
+              public steepness: number,
+              public direction: THREE.Vector2) {}
+}
+
+const wavefronts = [
+  new Wavefront(1, 10, 0.3, new THREE.Vector2(1, 1)),
+  new Wavefront(1, 10, 1, new THREE.Vector2(0.4, 0.8)),
+  new Wavefront(3, 30, 1, new THREE.Vector2(-0.6, 0.3)),
+  new Wavefront(3, 30, 1, new THREE.Vector2(-0.6, 0.3)),
+  new Wavefront(3, 30, 1, new THREE.Vector2(-0.6, 0.3)),
+  new Wavefront(1, 10, 0.3, new THREE.Vector2(1, 1)),
+  new Wavefront(1, 10, 1, new THREE.Vector2(0.4, 0.8)),
+  new Wavefront(3, 30, 1, new THREE.Vector2(-0.6, 0.3)),
+]
+
+
+// GUI
+const gui = new dat.GUI()
+
+wavefronts.forEach((wavefront, index) => {
+  const GUIWavefront = {
+    ...wavefront,
+    direction: vec2ToDeg(wavefront.direction)
+  }  
+
+  const folder = gui.addFolder(`Wave ${index + 1}`)
+
+  folder.add(GUIWavefront, 'amplitude')
+    .onChange((val: number) => { wavefront.amplitude = val })
+
+  folder.add(GUIWavefront, 'length')
+    .onChange((val: number) => { wavefront.length = val })
+
+  folder.add(GUIWavefront, 'steepness').min(0).max(1).step(0.01)
+    .onChange((val: number) => { wavefront.steepness = val })
+
+  folder.add(GUIWavefront, 'direction').min(0).max(359)
+    .onChange((val: number) => { wavefront.direction = degToVec2(val) })
+})
+
+function degToVec2(degree: number): THREE.Vector2 {
+  return new THREE.Vector2(Math.cos(THREE.Math.degToRad(degree)),
+                           Math.sin(THREE.Math.degToRad(degree)))
+}
+
+function vec2ToDeg(vec: THREE.Vector2): number {
+  return THREE.Math.radToDeg(Math.atan2(vec.y, vec.x))
+}
+
 
 // Surface
 const uniforms = {
   time: {type: 'f', value: 1.0},
-  wavefronts: { 
-    value: [
-      {
-        amplitude: 1,
-        length: 10,
-        steepness: 0.3,
-        direction: new THREE.Vector2(1, 1)
-      },
-      {
-        amplitude: 1,
-        length: 10,
-        steepness: 1,
-        direction: new THREE.Vector2(0.4, 0.8)
-      },
-      {
-        amplitude: 3,
-        length: 30,
-        steepness: 1,
-        direction: new THREE.Vector2(-0.6, 0.3)
-      }
-    ],
-  }
+  wavefronts: { value: wavefronts }
 }
 const size = 32
 const surface = new THREE.Mesh(
@@ -54,7 +86,7 @@ const surface = new THREE.Mesh(
     uniforms,
     vertexShader: `
       #define M_PI 3.1415926535897932384626433832795
-      #define NUM_WAVEFRONTS 3
+      #define NUM_WAVEFRONTS 8
 
       uniform float time;
 

@@ -5,6 +5,7 @@
   "main": "lib/index.js",
   "dependencies": {},
   "devDependencies": {
+    "@types/dat-gui": "^0.6.3",
     "@types/three": "^0.84.17"
   },
   "scripts": {
