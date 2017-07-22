@@ -79,7 +79,7 @@ const uniforms = {
   time: {type: 'f', value: 1.0},
   wavefronts: { value: wavefronts }
 }
-const size = 32
+const size = 64
 const surface = new THREE.Mesh(
   new THREE.PlaneBufferGeometry(30, 30, size, size),
   new THREE.ShaderMaterial({
@@ -109,9 +109,9 @@ const surface = new THREE.Mesh(
       Wave getWave(Wavefront wf) {
         float A = wf.amplitude;
         float L = wf.length;
-        float Q = wf.steepness;
-        vec2 D = wf.direction;
         float w = 2.0 * M_PI / L; // frequency
+        float Q = wf.steepness / (w * A);
+        vec2 D = wf.direction;
         float speed = 1.0;        // phase
 
         float dotD = dot(position, vec3(D.x, 0.0, D.y));
