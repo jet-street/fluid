@@ -114,7 +114,7 @@ const surface = new THREE.Mesh(
         float w = 2.0 * M_PI / L; // frequency
         float speed = 1.0;        // phase
 
-        float dotD = dot(position, vec3(D, 1.0)); 
+        float dotD = dot(position, vec3(D.x, 0.0, D.y));
         float S = sin(w * dotD + time * speed);
         float C = cos(w * dotD + time * speed);
 
