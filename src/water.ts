@@ -91,8 +91,8 @@ const surface = new THREE.Mesh(
     vertexShader: `
       #define M_PI 3.1415926535897932384626433832795
       #define NUM_WAVEFRONTS 8
-      #define NUM_HF_WAVEFRONTS 3
-      #define NUM_LF_WAVEFRONTS 5
+      #define NUM_LF_WAVEFRONTS 3
+      #define NUM_HF_WAVEFRONTS 5
 
       uniform float time;
 
@@ -146,7 +146,7 @@ const surface = new THREE.Mesh(
           lowFrequencySum.normal += wave.normal;
         }
 
-        for (int i = NUM_LF_WAVEFRONTS; i < NUM_HF_WAVEFRONTS; i++) {
+        for (int i = NUM_LF_WAVEFRONTS; i < NUM_WAVEFRONTS; i++) {
           Wave wave = getWave(wavefronts[i], lowFrequencySum.position);
           highFrequencySum.position += wave.position;
           highFrequencySum.normal += wave.normal;
