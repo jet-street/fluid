@@ -8,10 +8,11 @@ const scene = new THREE.Scene()
 const fov = 75
 const aspect = window.innerWidth / window.innerHeight
 const near = 0.1
-const far = 1000
+const far = 2500
 const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
-camera.position.z = -50
-camera.position.y = 20
+camera.position.x = 300
+camera.position.y = 100
+camera.position.z = 400
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
@@ -22,22 +23,22 @@ const clock = new THREE.Clock()
 const controls = new THREE.OrbitControls(camera, renderer.domElement)
 
 class Wavefront {
-  constructor(public amplitudeOverLength: number,
-              public length: number,
-              public steepness: number,
-              public speed: number,
-              public direction: THREE.Vector2) {}
+  constructor(public amplitudeOverLength: number = 0,
+              public length: number = 1,
+              public steepness: number = 0.5,
+              public speed: number = 1.0,
+              public direction: THREE.Vector2 = degToVec2(0)) {}
 }
 
 const wavefronts = [
-  new Wavefront(0.3, 15, 1, -1, degToVec2(0)),
-  new Wavefront(0.3, 25, 1, -1, degToVec2(120)),
-  new Wavefront(0.3, 45, 1, -1, degToVec2(240)),
-  new Wavefront(0.1, 5, 0.6, 1.7, degToVec2(0)),
-  new Wavefront(0.1, 7, 0.9, 1.5, degToVec2(72)),
-  new Wavefront(0.1, 5, 0.6, 1.3, degToVec2(144)),
-  new Wavefront(0.1, 7, 0.9, 1.1, degToVec2(216)),
-  new Wavefront(0.1, 5, 0.6, 1, degToVec2(288)),
+  new Wavefront(0.1, 10, 0, 0.3, degToVec2(0)),
+  new Wavefront(0.1, 20, 0, 0.4, degToVec2(45)),
+  new Wavefront(0.1, 15, 0, 0.2, degToVec2(13)),
+  new Wavefront(0.074, 4, 0.87, -0.26, degToVec2(25)),
+  new Wavefront(0.09, 9, 0.73, -0.55, degToVec2(17)),
+  new Wavefront(0.15, 6, 0.77, -0.79, degToVec2(50)),
+  new Wavefront(0.07, 8, 0.87, -0.16, degToVec2(53)),
+  new Wavefront(0.08, 6, 0.97, -0.7, degToVec2(37)),
 ]
 
 
@@ -52,7 +53,7 @@ wavefronts.forEach((wavefront, index) => {
 
   const folder = gui.addFolder(`Wave ${index + 1}`)
 
-  folder.add(GUIWavefront, 'amplitudeOverLength').min(0.01).max(0.5).step(0.01)
+  folder.add(GUIWavefront, 'amplitudeOverLength').min(0).max(0.5).step(0.1)
     .onChange((val: number) => { wavefront.amplitudeOverLength = val })
 
   folder.add(GUIWavefront, 'length').min(1)
@@ -83,7 +84,7 @@ const uniforms = {
   time: {type: 'f', value: 1.0},
   wavefronts: { value: wavefronts }
 }
-const size = 64
+const size = 256
 const surface = new THREE.Mesh(
   new THREE.PlaneBufferGeometry(30, 30, size, size),
   new THREE.ShaderMaterial({
@@ -117,7 +118,7 @@ const surface = new THREE.Mesh(
         float A = wf.amplitudeOverLength * wf.length;
         float L = wf.length;
         float w = 2.0 * M_PI / L; // frequency
-        float Q = wf.steepness / (w * A);
+        float Q = A == 0.0 ? wf.steepness : wf.steepness / (w * A);
         vec2 D = wf.direction;
         float speed = wf.speed;   // phase
 
