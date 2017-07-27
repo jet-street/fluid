@@ -175,18 +175,18 @@ const surface = new THREE.Mesh(
         Wave combinedWave = sumWaves();
         gl_Position = projectionMatrix * modelViewMatrix
                       * vec4(combinedWave.position, 1.0);
-        vec4 vertPos4 = modelViewMatrix * vec4(combinedWave.position, 1.0);
-        vertPos = vec3(vertPos4) / vertPos4.w;
-        surfaceNormal = vec3(normalMatrix * combinedWave.normal);
+        vertPos = vec3(modelMatrix * vec4(combinedWave.position, 1.0));
+        surfaceNormal = vec3(modelMatrix * vec4(combinedWave.normal, 1.0));
       }
     `,
     fragmentShader: `
       varying vec3 surfaceNormal;
       varying vec3 vertPos;
 
-      const vec3 lightPos = vec3(1.0);
-      const vec3 diffuseColor = vec3(0.1, 0.3, 0.6);
-      const vec3 specularColor = vec3(1.0);
+      const vec3 lightPos = vec3(0.0, 300.0, -500.0);
+      const vec3 diffuseColor = vec3(0.05, 0.3, 0.6);
+      const vec3 ambientColor = vec3(0.04, 0.0, 0.0);
+      const vec3 specularColor = vec3(1.0, 0.66, 0.33) * 3.0;
 
       void main() {
         vec3 normal = normalize(surfaceNormal); 
@@ -197,13 +197,14 @@ const surface = new THREE.Mesh(
 
         if (lambertian > 0.0) {
           vec3 halfwayDir = reflect(-lightDir, normal);
-          vec3 viewDir = normalize(-vertPos);
+          vec3 viewDir = normalize(cameraPosition - vertPos);
 
           float specAngle = max(dot(halfwayDir, viewDir), 0.0);
           specular = pow(specAngle, 32.0);
         }
 
         gl_FragColor = vec4(lambertian * diffuseColor
+                            + ambientColor
                             + specular * specularColor, 1.0);
       }
     `
