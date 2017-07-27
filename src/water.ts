@@ -42,6 +42,20 @@ const wavefronts = [
 ]
 
 
+// Boat
+const loader = new THREE.ObjectLoader()
+loader.load('../assets/ship.json', obj => {
+  const boat = obj
+  scene.add(boat)
+  boat.scale.x = boat.scale.y = boat.scale.z = 10
+})
+
+var directionalLight = new THREE.DirectionalLight()
+scene.add(directionalLight)
+directionalLight.position.z = -500
+directionalLight.position.y = 300
+
+
 // GUI
 const gui = new dat.GUI()
 
